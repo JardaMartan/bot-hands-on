@@ -123,6 +123,19 @@ def startup():
     return "Hello World!"
     
 """
+Send a card manually
+"""
+@flask_app.route("/card")
+def send_card():
+    card = EMPTY_CARD.copy()
+    card["content"] = HELLO_CARD
+
+    card_result = webex_api.messages.create(roomId = TARGET_SPACE_ID, markdown = "card", attachments = [card])
+    logger.info(f"Card send result: {card_result}")
+    
+    return f"{card_result}"
+    
+"""
 Independent thread startup, see:
 https://networklore.com/start-task-with-flask/
 """
