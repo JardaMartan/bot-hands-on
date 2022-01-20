@@ -57,6 +57,7 @@ flask_app.config["DEBUG"] = True
 requests.packages.urllib3.disable_warnings()
 
 # threading part
+import concurrent.futures
 thread_executor = concurrent.futures.ThreadPoolExecutor()
 
 @flask_app.before_first_request
