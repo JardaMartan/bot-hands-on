@@ -79,7 +79,7 @@ def get_bot_id():
         me = get_bot_info()
         bot_id = me.id
         
-    # logger.debug("Bot id: {}".format(bot_id))
+    logger.debug("Bot id: {}".format(bot_id))
     return bot_id
     
 def get_bot_info():
