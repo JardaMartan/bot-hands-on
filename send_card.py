@@ -1,4 +1,5 @@
 import os
+import sys
 import json
 import logging
 from dotenv import load_dotenv, find_dotenv
@@ -9,7 +10,14 @@ if dotenv_file:
 else:
     load_dotenv(find_dotenv())
     
-logger = logging.getLogger()
+logger = logging.getLogger(__name__)
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s  [%(levelname)7s]  [%(module)s.%(name)s.%(funcName)s]:%(lineno)s %(message)s",
+    handlers=[
+        logging.StreamHandler(sys.stdout)
+    ]
+)
 
 # wrapper structure for Webex attachments list        
 EMPTY_CARD = {
@@ -33,7 +41,7 @@ HELLO_CARD = json.loads("""
 """)
 
 # get the Space ID at https://developer.webex.com/docs/api/v1/rooms/list-rooms
-TARGET_SPACE_ID = "paste_your_space_id_here"
+TARGET_SPACE_ID = "paste_space_id_here"
 
 # see documentation at https://webexteamssdk.readthedocs.io/en/latest/user/api.html
 from webexteamssdk import WebexTeamsAPI, ApiError, AccessToken
