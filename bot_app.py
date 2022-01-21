@@ -245,10 +245,9 @@ def handle_webhook_event(webhook):
         flask_app.logger.info(json.dumps(webhook))
 
     if webhook["resource"] == "attachmentActions":
-        try:
-            in_attach = webex_api.attachment_actions.get(webhook["data"]["id"])
-            in_attach_dict = in_attach.to_dict()
-            flask_app.logger.debug("Form received: {}".format(in_attach_dict))
+        in_attach = webex_api.attachment_actions.get(webhook["data"]["id"])
+        in_attach_dict = in_attach.to_dict()
+        flask_app.logger.debug("Form received: {}".format(in_attach_dict))
 
 def create_webhook(target_url):
     """create a set of webhooks for the Bot
