@@ -73,13 +73,15 @@ BUTTON_CARD = json.loads("""
                     "type": "Action.Submit",
                     "title": "Button 1",
                     "id": "button_1",
-                    "style": "positive"
+                    "style": "positive",
+                    "data": {"button": "1"}
                 },
                 {
                     "type": "Action.Submit",
                     "title": "Button 2",
                     "id": "button_2",
-                    "style": "destructive"
+                    "style": "destructive",
+                    "data": {"button": "2"}
                 }
             ],
             "horizontalAlignment": "Right"
