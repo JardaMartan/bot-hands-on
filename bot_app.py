@@ -157,7 +157,7 @@ Receive webhook
 @flask_app.route("/alert", methods=["GET", "POST"])
 def alert_card():
     webhook_data = request.get_json(silent=True)
-    flask_app.logger.debug("Webhook received: {}".format(webhook_data))
+    logger.debug("Webhook received: {}".format(webhook_data))
 
     card = EMPTY_CARD.copy()
     card["content"] = ALERT_CARD
@@ -176,7 +176,7 @@ def get_room_membership(room_type = ["direct", "group"]):
         if membership.json_data.get("roomType") in room_type:
             room_list.append(membership.roomId)
     
-    flask_app.logger.debug("room membership list: {}".format(room_list))    
+    logger.debug("room membership list: {}".format(room_list))    
     
     return room_list
 
