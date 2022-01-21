@@ -40,6 +40,22 @@ HELLO_CARD = json.loads("""
 }
 """)
 
+ALERT_CARD = json.loads("""
+{
+    "type": "AdaptiveCard",
+    "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+    "version": "1.2",
+    "body": [
+        {
+            "type": "TextBlock",
+            "text": "Alert!",
+            "wrap": true
+        }
+    ]
+}
+""")
+
+
 # see documentation at https://webexteamssdk.readthedocs.io/en/latest/user/api.html
 from webexteamssdk import WebexTeamsAPI, ApiError, AccessToken
 webex_api = WebexTeamsAPI()
@@ -133,6 +149,35 @@ def send_card():
     
     return f"{card_result}"
     
+"""
+Receive webhook
+"""
+@flask_app.route("/alert", methods=["GET", "POST"])
+def alert_card():
+    webhook_data = request.get_json(silent=True)
+    flask_app.logger.debug("Webhook received: {}".format(webhook_data))
+
+    card = EMPTY_CARD.copy()
+    card["content"] = ALERT_CARD
+
+    room_list = get_room_membership()
+    for room_id in room_list:
+        webex_api.messages.create(roomId = room_id, markdown = "alert", attachments = [card])
+        logger.info(f"Card send result: {card_result}")
+    
+    return f"{card_result}"
+
+def get_room_membership(room_type = ["direct", "group"]):
+    membership_list = webex_api.memberships.list()
+    room_list = []
+    for membership in membership_list:
+        if membership.json_data.get("roomType") in room_type:
+            room_list.append(membership.roomId)
+    
+    flask_app.logger.debug("room membership list: {}".format(room_list))    
+    
+    return room_list
+
 """
 Independent thread startup, see:
 https://networklore.com/start-task-with-flask/
