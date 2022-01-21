@@ -40,9 +40,6 @@ HELLO_CARD = json.loads("""
 }
 """)
 
-# get the Space ID at https://developer.webex.com/docs/api/v1/rooms/list-rooms
-TARGET_SPACE_ID = "paste_space_id_here"
-
 # see documentation at https://webexteamssdk.readthedocs.io/en/latest/user/api.html
 from webexteamssdk import WebexTeamsAPI, ApiError, AccessToken
 webex_api = WebexTeamsAPI()
@@ -50,5 +47,5 @@ webex_api = WebexTeamsAPI()
 card = EMPTY_CARD.copy()
 card["content"] = HELLO_CARD
 
-card_result = webex_api.messages.create(roomId = TARGET_SPACE_ID, markdown = "card", attachments = [card])
+card_result = webex_api.messages.create(roomId = os.getenv("TARGET_SPACE_ID"), markdown = "card", attachments = [card])
 logger.info(f"Card send result: {card_result}")
