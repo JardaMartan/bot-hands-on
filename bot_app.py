@@ -55,6 +55,38 @@ ALERT_CARD = json.loads("""
 }
 """)
 
+BUTTON_CARD = json.loads("""
+{
+    "type": "AdaptiveCard",
+    "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",
+    "version": "1.2",
+    "body": [
+        {
+            "type": "TextBlock",
+            "text": "Click a button",
+            "wrap": true
+        },
+        {
+            "type": "ActionSet",
+            "actions": [
+                {
+                    "type": "Action.Submit",
+                    "title": "Button 1",
+                    "id": "button_1",
+                    "style": "positive"
+                },
+                {
+                    "type": "Action.Submit",
+                    "title": "Button 2",
+                    "id": "button_2",
+                    "style": "destructive"
+                }
+            ],
+            "horizontalAlignment": "Right"
+        }
+    ]
+}
+""")
 
 # see documentation at https://webexteamssdk.readthedocs.io/en/latest/user/api.html
 from webexteamssdk import WebexTeamsAPI, ApiError, AccessToken
@@ -142,7 +174,7 @@ Send a card manually
 @flask_app.route("/card")
 def send_card():
     card = EMPTY_CARD.copy()
-    card["content"] = HELLO_CARD
+    card["content"] = BUTTON_CARD
 
     room_list = get_room_membership()
     for room_id in room_list:
@@ -179,6 +211,84 @@ def get_room_membership(room_type = ["direct", "group"]):
     logger.debug("room membership list: {}".format(room_list))    
     
     return room_list
+
+@flask_app.route("/", methods=["GET", "POST"])
+def webex_webhook():
+    if request.method == "POST":
+        webhook = request.get_json(silent=True)
+        logger.debug("Webhook received: {}".format(webhook))
+        handle_webhook_event(webhook)        
+    elif request.method == "GET":
+        bot_info = get_bot_info()
+        message = "<center><img src=\"{0}\" alt=\"{1}\" style=\"width:256; height:256;\"</center>" \
+                  "<center><h2><b>Congratulations! Your <i style=\"color:#ff8000;\">{1}</i> bot is up and running.</b></h2></center>".format(bot_info.avatar, bot_info.displayName)
+                  
+        message += "<center><b>I'm hosted at: <a href=\"{0}\">{0}</a></center>".format(request.url)
+        res = create_webhook(request.url)
+        if res is True:
+            message += "<center><b>New webhook created sucessfully</center>"
+        else:
+            message += "<center><b>Tried to create a new webhook but failed, see application log for details.</center>"
+
+        return message
+        
+    logger.debug("Webhook handling done.")
+    return "OK"
+
+# @task
+def handle_webhook_event(webhook):
+    action_list = []
+    bot_info = get_bot_info()
+    bot_email = bot_info.emails[0]
+    bot_name = bot_info.displayName
+    if webhook["data"].get("personEmail") != bot_email:
+        flask_app.logger.info(json.dumps(webhook))
+
+    if webhook["resource"] == "attachmentActions":
+        try:
+            in_attach = webex_api.attachment_actions.get(webhook["data"]["id"])
+            in_attach_dict = in_attach.to_dict()
+            flask_app.logger.debug("Form received: {}".format(in_attach_dict))
+
+def create_webhook(target_url):
+    """create a set of webhooks for the Bot
+    webhooks are defined according to the resource_events dict
+    
+    arguments:
+    target_url -- full URL to be set for the webhook
+    """    
+    logger.debug("Create new webhook to URL: {}".format(target_url))
+    
+    resource_events = {
+        # "messages": ["created"],
+        # "memberships": ["created", "deleted"],
+        "attachmentActions": ["created"]
+    }
+    status = None
+        
+    try:
+        check_webhook = webex_api.webhooks.list()
+        for webhook in check_webhook:
+            logger.debug("Deleting webhook {}, '{}', App Id: {}".format(webhook.id, webhook.name, webhook.appId))
+            try:
+                if not flask_app.testing:
+                    webex_api.webhooks.delete(webhook.id)
+            except ApiError as e:
+                logger.error("Webhook {} delete failed: {}.".format(webhook.id, e))
+    except ApiError as e:
+        logger.error("Webhook list failed: {}.".format(e))
+        
+    for resource, events in resource_events.items():
+        for event in events:
+            try:
+                if not flask_app.testing:
+                    webex_api.webhooks.create(name="Webhook for event \"{}\" on resource \"{}\"".format(event, resource), targetUrl=target_url, resource=resource, event=event)
+                status = True
+                logger.debug("Webhook for {}/{} was successfully created".format(resource, event))
+            except ApiError as e:
+                logger.error("Webhook create failed: {}.".format(e))
+            
+    return status
 
 """
 Independent thread startup, see:
