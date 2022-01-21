@@ -162,7 +162,7 @@ def alert_card():
 
     room_list = get_room_membership()
     for room_id in room_list:
-        webex_api.messages.create(roomId = room_id, markdown = "alert", attachments = [card])
+        card_result = webex_api.messages.create(roomId = room_id, markdown = "alert", attachments = [card])
         logger.info(f"Card send result: {card_result}")
     
     return f"{card_result}"
