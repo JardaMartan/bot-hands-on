@@ -144,8 +144,10 @@ def send_card():
     card = EMPTY_CARD.copy()
     card["content"] = HELLO_CARD
 
-    card_result = webex_api.messages.create(roomId = os.getenv("TARGET_SPACE_ID"), markdown = "card", attachments = [card])
-    logger.info(f"Card send result: {card_result}")
+    room_list = get_room_membership()
+    for room_id in room_list:
+        card_result = webex_api.messages.create(roomId = room_id, markdown = "card", attachments = [card])
+        logger.info(f"Card send result: {card_result}")
     
     return f"{card_result}"
     
