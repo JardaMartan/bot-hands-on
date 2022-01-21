@@ -250,6 +250,14 @@ def handle_webhook_event(webhook):
         in_attach = webex_api.attachment_actions.get(webhook["data"]["id"])
         in_attach_dict = in_attach.to_dict()
         flask_app.logger.debug("Form received: {}".format(in_attach_dict))
+        if in_attach_dict["type"] == "submit":
+            inputs = in_attach_dict["inputs"]
+            room_id = in_attach_dict["roomId"]
+            person_id = in_attach_dict["personId"]
+            person_info = webex_api.people.get(person_id)
+            button_id = inputs.get("button", "?")
+            message = f"{person_info.displayName} clicked on Button {button_id}"
+            webex_api.messages.create(roomId = room_id, markdown = message)
 
 def create_webhook(target_url):
     """create a set of webhooks for the Bot
