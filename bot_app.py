@@ -178,8 +178,7 @@ def send_card():
     card = EMPTY_CARD.copy()
     card["content"] = BUTTON_CARD
 
-    room_list = get_room_membership()
-    for room_id in room_list:
+    for room_id in get_room_membership():
         card_result = webex_api.messages.create(roomId = room_id, markdown = "card", attachments = [card])
         logger.info(f"Card send result: {card_result}")
     
@@ -196,8 +195,7 @@ def alert_card():
     card = EMPTY_CARD.copy()
     card["content"] = ALERT_CARD
 
-    room_list = get_room_membership()
-    for room_id in room_list:
+    for room_id in get_room_membership():
         card_result = webex_api.messages.create(roomId = room_id, markdown = "alert", attachments = [card])
         logger.info(f"Card send result: {card_result}")
     
@@ -208,11 +206,7 @@ def get_room_membership(room_type = ["direct", "group"]):
     room_list = []
     for membership in membership_list:
         if membership.json_data.get("roomType") in room_type:
-            room_list.append(membership.roomId)
-    
-    logger.debug("room membership list: {}".format(room_list))    
-    
-    return room_list
+            yield membership.roomId
 
 @flask_app.route("/", methods=["GET", "POST"])
 def webex_webhook():
